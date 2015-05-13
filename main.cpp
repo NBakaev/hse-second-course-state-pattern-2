@@ -195,11 +195,13 @@ private: IState _state;
 public:
     int _countPaper;
 
-    PaperOffState PaperOffState; // { get; private set; }
-    PowerOnState PowerOnState; // { get; private set; }
+    // list of all available states
 
-    PrintState PrintState; // { get; private set; }
-    WaitingState WaitingState; // { get; private set; }
+    PaperOffState PaperOffState;
+    PowerOnState PowerOnState;
+
+    PrintState PrintState;
+    WaitingState WaitingState;
 
 
     int CountPaper () {
