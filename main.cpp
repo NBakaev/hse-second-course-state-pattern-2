@@ -1,268 +1,57 @@
 #include <iostream>
+#include "State.h"
 
-using namespace std;
+struct Client {
+	void run() {
+		Printer printer;
+		int action;
 
-class IState
-{
-    void On();
-    void Off();
-    void Print();
-    void AddPaper(int count);
+		while(true) {
+			std::cout << "Выберите действие:" << std::endl;
+			std::cout << "1. Печатать документ" << std::endl;
+			std::cout << "2. Включить принтер" << std::endl;
+			std::cout << "3. Выключить принтер" << std::endl;
+			std::cout << "4. Добавить бумаги" << std::endl;
+			std::cout << "5. Выход" << std::endl;
+
+			std::cin >> action;
+
+			switch(action) {
+				case 1:
+					printer.Print();
+				break;
+
+				case 2:
+					printer.On();
+				break;
+
+				case 3:
+					printer.Off();
+				break;
+
+				case 4:
+					printer.AddPaper(AddPaperDialogue());
+				break;
+
+				case 5:
+				return;
+				
+				default:
+				std::cout << "Неверное действие" << std::endl;
+			}
+		}
+	}
+
+	int AddPaperDialogue() {
+		int count;
+		std::cout << "Сколько бумаги добавить?" << std::endl;
+		std::cin >> count;
+		return count;
+	}	
 };
 
-class PowerOffState : public IState
-{
-    private:
-        Printer _printer;
-
-    public:
-
-    PowerOffState(Printer printer)
-    {
-        _printer = printer;
-    }
-    void On()
-    {
-        Console.WriteLine("Принтер включен");
-        _printer.SetState(_printer.WaitingState);
-    }
-
-    void Off()
-    {
-        Console.WriteLine("Принтер и так выключен");
-    }
-
-    void Print()
-    {
-        Console.WriteLine("Принтер отключен, печать невозможна");
-    }
-
-    void AddPaper(int count)
-    {
-        _printer.AddPater(count);
-        Console.WriteLine("Бумага добавлена");
-    }
-};
-
-//////////////////////////////////////////////////////////
-class WaitingState : public IState
-{
-
-    private:
-    Printer _printer;
-
-
-    public:
-
-    WaitingState(Printer printer)
-    {
-        _printer = printer;
-    }
-
-    void On()
-    {
-        Console.WriteLine("Принтер уже и так включен");
-    }
-
-    void Off()
-    {
-        Console.WriteLine("Принтер выключен");
-    }
-
-    void Print()
-    {
-        if (_printer.CountPaper > 0)
-        {
-            Console.WriteLine("Сейчас всё распечатаем");
-            _printer.AddPater(-1);
-        }
-        else
-        {
-            _printer.SetState(_printer.PaperOffState);
-            _printer.PrintDocument();
-        }
-    }
-
-    void AddPaper(int count)
-    {
-        _printer.AddPater(count);
-        Console.WriteLine("Бумага добавлена");
-    }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-class PaperOnState : public IState
-{
-private:
-    Printer _printer;
-
-public:
-
-    PaperOffState(Printer printer)
-    {
-        _printer = printer;
-    }
-
-    void On()
-    {
-        Console.WriteLine("Принтер уже и так включен");
-    }
-
-    void Off()
-    {
-        Console.WriteLine("Принтер выключен");
-        _printer.SetState(_printer.PowerOffState);
-    }
-
-    void Print()
-    {
-        if (_printer.CountPaper > 0)
-        {
-            _printer.SetState(_printer.PrintState);
-            _printer.PrintDocument();
-        }
-        else
-        {
-            Console.WriteLine("Бумаги нет, печатать не буду");
-        }
-
-    }
-
-    void AddPaper(int count)
-    {
-        Console.WriteLine("Добавляем бумагу");
-        _printer.AddPater(count);
-        if (_printer.CountPaper > 0)
-            _printer.SetState(_printer.WaitingState);
-    }
-};
-
-//////////////////////////////////////////////////////////////
-
-class PrintState : IState
-{
-private:
-    Printer _printer;
-
-public:
-    PrintState(Printer printer)
-    {
-        _printer = printer;
-    }
-    void On()
-    {
-        Console.WriteLine("Принтер уже и так включен");
-    }
-
-    void Off()
-    {
-        Console.WriteLine("Принтер выключен");
-    }
-
-    void Print()
-    {
-        if (_printer.CountPaper > 0)
-        {
-            Console.WriteLine("Идёт печать...");
-            _printer.AddPater(-1);
-            _printer.SetState(_printer.WaitingState);
-        }
-
-        else
-        {
-            _printer.SetState(_printer.PaperOffState);
-            _printer.PrintDocument();
-        }
-
-    }
-
-    void AddPaper(int count)
-    {
-        _printer.AddPater(count);
-        Console.WriteLine("Бумага добавлена");
-    }
-};
-
-///////////////////////////////////////////////////////////
-
-
-class Printer
-{
-private: IState _state;
-
-public:
-    int _countPaper;
-
-    // list of all available states
-
-    PaperOffState PaperOffState;
-    PowerOnState PowerOnState;
-
-    PrintState PrintState;
-    WaitingState WaitingState;
-
-
-    int CountPaper () {
-        return _countPaper;
-    }
-
-    Printer()
-    {
-        PowerOffState = new PowerOffState(this);
-        PaperOnState = new PaperOnState(this);
-        PrintState = new PrintState(this);
-        WaitingState = new WaitingState(this);
-        _state = WaitingState;
-    }
-
-    void SetState(IState state)
-    {
-        _state = state;
-    }
-
-    void PrintDocument()
-    {
-        _state.Print();
-    }
-
-    void PowerOff()
-    {
-        _state.Off();
-    }
-    void PowerOn()
-    {
-        _state.On();
-    }
-
-    void AddPater(int count)
-    {
-        _countPaper += count;
-    }
-};
-
-
-
-
-
-
-int main()
-{
-    Printer printer = new Printer();
-
-    printer.PowerOn();
-    printer.PrintDocument();
-    printer.AddPater(3);
-    printer.PrintDocument();
-    printer.PrintDocument();
-    printer.PrintDocument();
-    printer.PrintDocument();
-    printer.PowerOff();
-
-    delete printer;
-
-//    cout << "Hello World!" << endl;
-    return 0;
+int main(int argc, char const *argv[]) {
+	Client c;
+	c.run();
+	return 0;
 }
-
